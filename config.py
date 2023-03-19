@@ -1,0 +1,15 @@
+dialect = 'mysql'
+driver = 'pymysql'
+database = 'maligrab'
+username = 'maligrab'
+password = 'MaliGrab'
+host = 'localhost'
+port = '3306'
+HEADLESS = True
+SCREENSHOT = True
+DB_URI = f'{dialect}+{driver}://{username}:{password}@{host}:{port}/{database}'
+MAX_PROCESS = 8
+BATCH_SIZE = 5
+SQL_BATCH_SIZE = 1
+PAGE_TIMEOUT = 6
+TCP_TIMEOUT = 3
