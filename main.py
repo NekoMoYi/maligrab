@@ -41,7 +41,6 @@ def fetchSiteBatch(urlBatch):
     for site in urlBatch:
         url = site['url']
         domainName = urllib.parse.urlparse(url).hostname
-
         if any(char.isalpha() for char in domainName):
             if not getIp(domainName):
                 rp.info(f"DNS Failed, Skip: {url}")
@@ -71,6 +70,10 @@ def fetchSiteBatch(urlBatch):
         protocol = browser.execute_script(
             "return window.location.protocol").replace(":", "")
         title = browser.execute_script("return document.title")
+        
+        if title and len(title) > 64:
+            title = title[:64]
+
         hostname = urllib.parse.urlparse(browser.current_url).hostname
         ipaddr = None
         port = urllib.parse.urlparse(browser.current_url).port
@@ -189,7 +192,6 @@ def fetchSiteBatch(urlBatch):
 
         rp.debug(f"TimeCost: {url} - {round(time.time() - startTime, 2)}s")
 
-        browser.quit()
         if len(siteList) >= config.SQL_BATCH_SIZE:
             try:
                 db.add_all(siteList)
@@ -197,6 +199,7 @@ def fetchSiteBatch(urlBatch):
                 siteList = []
             except Exception as e:
                 rp.error(f"SQL Failed: {e}")
+    browser.quit()
     try:
         db.add_all(siteList)
         db.commit()
@@ -210,7 +213,7 @@ if __name__ == '__main__':
     if not os.path.isdir("pages"):
         os.mkdir("pages")
     print("Loading data...")
-    sitesFile = pd.read_csv("./data/train1_0.csv")
+    sitesFile = pd.read_csv("./data/train2.csv")
     print("Shuffling data...")
     sitesFile = shuffle(sitesFile)
     urlBatch = []
@@ -221,6 +224,8 @@ if __name__ == '__main__':
                     "url": sitesFile.iloc[j][0] if sitesFile.iloc[j][0].startswith("http://") or sitesFile.iloc[j][0].startswith("https://") else "http://" + sitesFile.iloc[j][0],
                     "type": sitesFile.iloc[j][1],
                 })
+            urlBatch[-1]["url"] = urlBatch[-1]["url"].strip()
+
         if len(urlBatch) > 0:
             print(f"Process: {i}/{len(sitesFile)}")
             p = multiprocessing.Process(

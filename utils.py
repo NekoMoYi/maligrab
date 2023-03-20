@@ -1,12 +1,12 @@
 import json
 import ssl
 import socket
+import random
 import geoip2.database
 from RainbowPrint import RainbowPrint as rp
 import dns.resolver
 
 dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
-dns.resolver.default_resolver.nameservers = ['8.8.8.8']
 
 def getPeerCert(domain, port=443, timeout=5):
     try:
@@ -45,10 +45,13 @@ def parseCertObject(obj):
             result[pair[0]] = pair[1]
     return result
 
+dnsServerList = ['8.8.8.8', '114.114.114.114', '223.5.5.5', '180.76.76.76', '119.29.29.29']
+
 def getIp(domain):
     try:
+        dns.resolver.default_resolver.nameservers = [random.choice(dnsServerList)]
         resp = dns.resolver.resolve(domain).response.answer[0][0]
-        print(domain)
         return resp
     except Exception as e:
+        print(e)
         return None
